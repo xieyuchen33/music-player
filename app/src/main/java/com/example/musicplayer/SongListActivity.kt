@@ -87,9 +87,12 @@ class SongListActivity : AppCompatActivity() {
                     songList.addAll(songs)
                     // 显示数据，并加入点击跳转逻辑
                     recyclerView.adapter = SongAdapter(songList) { clickedSong ->
-                        // 跳转到详情页，并把歌曲数据传过去
                         val intent = android.content.Intent(this@SongListActivity, PlayerDetailActivity::class.java)
-                        intent.putExtra("SONG_DATA", clickedSong)
+                        // 1. 传入整个歌单列表（Song 类需要实现 Serializable 接口，或者转成 ArrayList）
+                        intent.putParcelableArrayListExtra("SONG_LIST", ArrayList(songList))
+                        // 2. 传入当前点击的是第几首歌
+                        val currentIndex = songList.indexOf(clickedSong)
+                        intent.putExtra("SONG_INDEX", currentIndex)
                         startActivity(intent)
                     }
                 }

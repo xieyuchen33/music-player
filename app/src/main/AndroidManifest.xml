@@ -6,6 +6,13 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <!-- 兼容 Android 13 及以上版本的新音频权限 -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <!-- 前台服务权限 (Android 9+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- 媒体播放类型的前台服务权限 (Android 14+ 必须) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <!-- 通知栏权限 (Android 13+ 必须，不然通知出不来) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -16,6 +23,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Musicplayer">
 
+        <!-- 注册 Media3 播放服务 -->
+        <service
+            android:name=".PlaybackService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
 
         <activity
             android:name=".MainActivity"

@@ -1,0 +1,36 @@
+package com.example.musicplayer
+
+import android.content.Intent
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSessionService
+
+class PlaybackService : MediaSessionService() {
+    private var mediaSession: MediaSession? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        // 1. 创建真正的播放器
+        val player = ExoPlayer.Builder(this).build()
+        // 添加循环模式
+        player.repeatMode = androidx.media3.common.Player.REPEAT_MODE_ALL
+
+        // 2. 把播放器绑定到 MediaSession 上
+        mediaSession = MediaSession.Builder(this, player).build()
+    }
+
+    // 3. 当页面（或者其他应用）请求连接时，把这个 session 交给它
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+        return mediaSession
+    }
+
+    // 4. 服务销毁时，释放资源，防止内存泄漏
+    override fun onDestroy() {
+        mediaSession?.run {
+            player.release()
+            release()
+            mediaSession = null
+        }
+        super.onDestroy()
+    }
+}
