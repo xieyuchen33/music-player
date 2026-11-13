@@ -53,6 +53,18 @@ class PlaybackService : MediaSessionService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
+    // 🚀 当用户从后台任务列表划掉 App 时，会触发这个方法
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+
+        // 1. 停止播放
+        mediaSession?.player?.stop()
+        mediaSession?.player?.release()
+
+        // 2. 停止前台服务，通知栏就会消失
+        stopSelf()
+    }
+
     // 4. 服务销毁时，释放资源，防止内存泄漏
     override fun onDestroy() {
         mediaSession?.run {

@@ -1,6 +1,7 @@
 package com.example.musicplayer
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -8,6 +9,7 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -34,6 +36,7 @@ class SongListActivity : AppCompatActivity() {
     ) { isGranted: Boolean ->
         if (isGranted) {
             loadMusicData()
+            loadLastProgress() // 权限通过后，读取进度记忆
         } else {
             // 降级处理：拒绝后提示且不崩溃
             progressBar.visibility = View.GONE
@@ -55,8 +58,8 @@ class SongListActivity : AppCompatActivity() {
         checkPermissionAndLoad()
 
         // 找到定时按钮并设置跳转
-        findViewById<android.widget.ImageButton>(R.id.btnOpenTimer).setOnClickListener {
-            val intent = android.content.Intent(this, SleepTimerActivity::class.java)
+        findViewById<ImageButton>(R.id.btnOpenTimer).setOnClickListener {
+            val intent = Intent(this, SleepTimerActivity::class.java)
             startActivity(intent)
         }
     }
@@ -70,8 +73,22 @@ class SongListActivity : AppCompatActivity() {
 
         if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
             loadMusicData()
+            loadLastProgress() // 有权限时，直接读取进度记忆
         } else {
             requestPermissionLauncher.launch(permission)
+        }
+    }
+
+    // 🚀 新增：读取上次保存的播放进度
+    private fun loadLastProgress() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val prefsManager = PrefsManager(this@SongListActivity)
+            val lastPath = prefsManager.getLastSongPath()
+            if (lastPath != null) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@SongListActivity, "上次播放记录已加载", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -93,8 +110,8 @@ class SongListActivity : AppCompatActivity() {
                     songList.addAll(songs)
                     // 显示数据，并加入点击跳转逻辑
                     recyclerView.adapter = SongAdapter(songList) { clickedSong ->
-                        val intent = android.content.Intent(this@SongListActivity, PlayerDetailActivity::class.java)
-                        // 1. 传入整个歌单列表（Song 类需要实现 Serializable 接口，或者转成 ArrayList）
+                        val intent = Intent(this@SongListActivity, PlayerDetailActivity::class.java)
+                        // 1. 传入整个歌单列表
                         intent.putParcelableArrayListExtra("SONG_LIST", ArrayList(songList))
                         // 2. 传入当前点击的是第几首歌
                         val currentIndex = songList.indexOf(clickedSong)
@@ -141,10 +158,10 @@ class SongListActivity : AppCompatActivity() {
     }
 }
 
-// 4. 基础 Adapter (临时用来展示数据)
+// 4. 基础 Adapter
 class SongAdapter(
     private val songs: List<Song>,
-    private val onItemClick: (Song) -> Unit // 新增点击回调
+    private val onItemClick: (Song) -> Unit
 ) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     class SongViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -164,7 +181,6 @@ class SongAdapter(
         holder.title.textSize = 16f
         holder.title.setPadding(30, 30, 30, 30)
 
-        // 点击事件：触发传进来的函数
         holder.itemView.setOnClickListener {
             onItemClick(song)
         }

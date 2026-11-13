@@ -12,6 +12,9 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch // 🚀 就是这个包你没导进来
 
 class PlayerDetailActivity : AppCompatActivity() {
 
@@ -81,9 +84,25 @@ class PlayerDetailActivity : AppCompatActivity() {
         }
     }
 
-    // 7. 页面退出时，断开连接 (但后台服务还在跑，音乐不会停！)
+    // 7. 页面退出时，保存进度并断开连接
     override fun onStop() {
         super.onStop()
+
+        // 退出页面时，把当前正在播放的歌曲和进度存起来
+        mediaController?.let { controller ->
+            val currentSongPath = controller.currentMediaItem?.localConfiguration?.uri?.path
+            val currentPosition = controller.currentPosition
+
+            if (currentSongPath != null) {
+                // 启动协程，在后台保存，不卡顿 UI
+                CoroutineScope(Dispatchers.IO).launch {
+                    val prefsManager = PrefsManager(this@PlayerDetailActivity)
+                    prefsManager.saveProgress(currentSongPath, currentPosition)
+                }
+            }
+        }
+
+        // 断开连接
         controllerFuture?.let { MediaController.releaseFuture(it) }
         mediaController = null
     }
