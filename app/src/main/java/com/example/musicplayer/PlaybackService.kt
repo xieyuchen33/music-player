@@ -1,5 +1,7 @@
 package com.example.musicplayer
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
@@ -22,6 +24,33 @@ class PlaybackService : MediaSessionService() {
     // 3. 当页面（或者其他应用）请求连接时，把这个 session 交给它
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         return mediaSession
+    }
+
+    // 🚀 新增：接收来自小组件的指令
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == "ACTION_TOGGLE_FROM_WIDGET") {
+            mediaSession?.let { session ->
+                val player = session.player
+                // 判断是否在播放，然后切换状态
+                if (player.isPlaying) {
+                    player.pause()
+                } else {
+                    // 如果播放器里没有歌曲，需要给个提示（可选）
+                    if (player.mediaItemCount > 0) {
+                        player.play()
+                    }
+                }
+
+                // 状态切换后，立刻通知桌面小组件刷新UI
+                val appWidgetManager = AppWidgetManager.getInstance(this)
+                val thisWidget = ComponentName(this, MusicWidgetProvider::class.java)
+                val allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
+                for (appWidgetId in allWidgetIds) {
+                    MusicWidgetProvider.updateAppWidget(this, appWidgetManager, appWidgetId, player.isPlaying)
+                }
+            }
+        }
+        return super.onStartCommand(intent, flags, startId)
     }
 
     // 4. 服务销毁时，释放资源，防止内存泄漏
