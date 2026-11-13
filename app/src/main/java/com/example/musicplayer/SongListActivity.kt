@@ -85,7 +85,13 @@ class SongListActivity : AppCompatActivity() {
                 } else {
                     songList.clear()
                     songList.addAll(songs)
-                    recyclerView.adapter = SongAdapter(songList)
+                    // 显示数据，并加入点击跳转逻辑
+                    recyclerView.adapter = SongAdapter(songList) { clickedSong ->
+                        // 跳转到详情页，并把歌曲数据传过去
+                        val intent = android.content.Intent(this@SongListActivity, PlayerDetailActivity::class.java)
+                        intent.putExtra("SONG_DATA", clickedSong)
+                        startActivity(intent)
+                    }
                 }
             }
         }
@@ -127,7 +133,10 @@ class SongListActivity : AppCompatActivity() {
 }
 
 // 4. 基础 Adapter (临时用来展示数据)
-class SongAdapter(private val songs: List<Song>) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
+class SongAdapter(
+    private val songs: List<Song>,
+    private val onItemClick: (Song) -> Unit // 新增点击回调
+) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     class SongViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val title: TextView = view.findViewById(android.R.id.text1)
@@ -145,6 +154,11 @@ class SongAdapter(private val songs: List<Song>) : RecyclerView.Adapter<SongAdap
         holder.title.setTextColor(android.graphics.Color.BLACK)
         holder.title.textSize = 16f
         holder.title.setPadding(30, 30, 30, 30)
+
+        // 点击事件：触发传进来的函数
+        holder.itemView.setOnClickListener {
+            onItemClick(song)
+        }
     }
 
     override fun getItemCount() = songs.size
