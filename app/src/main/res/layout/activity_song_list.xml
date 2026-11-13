@@ -20,6 +20,19 @@
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent" /> <!-- 标题栏变白，文字变深灰 -->
 
+    <!-- 定时按钮 -->
+    <ImageButton
+        android:id="@+id/btnOpenTimer"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_lock_idle_alarm"
+        app:layout_constraintBottom_toBottomOf="@+id/tvTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tvTitle"
+        app:tint="#333333" />
+
     <!-- 2. 歌曲列表 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"

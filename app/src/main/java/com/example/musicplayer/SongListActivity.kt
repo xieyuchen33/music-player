@@ -53,6 +53,12 @@ class SongListActivity : AppCompatActivity() {
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         checkPermissionAndLoad()
+
+        // 找到定时按钮并设置跳转
+        findViewById<android.widget.ImageButton>(R.id.btnOpenTimer).setOnClickListener {
+            val intent = android.content.Intent(this, SleepTimerActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun checkPermissionAndLoad() {
