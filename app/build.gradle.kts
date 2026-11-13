@@ -57,4 +57,9 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+
+    // 协程 (用于后台扫描音乐，不卡顿主线程)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    // RecyclerView (用于显示滚动列表)
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 }
